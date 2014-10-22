@@ -591,6 +591,10 @@ void InitClientPersistant (gclient_t *client)
 
 	memset (&client->pers, 0, sizeof(client->pers));
 
+	item = FindItem("Scope");
+    client->pers.selected_item = ITEM_INDEX(item);
+    client->pers.inventory[client->pers.selected_item] = 1;
+
 	item = FindItem("Blaster");
 	client->pers.selected_item = ITEM_INDEX(item);
 	client->pers.inventory[client->pers.selected_item] = 1;
@@ -1564,6 +1568,13 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	edict_t	*other;
 	int		i, j;
 	pmove_t	pm;
+
+	 if (!ent->client->pers.zoom || (ent->client->pers.zoom && ent->client->ps.fov != 30) )
+    {
+        ent->client->ps.fov = 90;
+        ent->client->pers.zoom = false;
+    }
+
 
 	level.current_entity = ent;
 	client = ent->client;

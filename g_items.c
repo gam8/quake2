@@ -1238,6 +1238,28 @@ gitem_t	itemlist[] =
 /* precache */ ""
 	},
 
+/* item_scope*/
+    {
+        "item_scope",
+        Pickup_Powerup,
+        Use_Scope,
+        NULL,
+        NULL,
+        "items/pkup.wav",
+        "models/items/silencer/tris.md2", EF_ROTATE,
+        NULL,
+        "p_silencer",
+        "Scope",
+        2,
+        60,
+        NULL,
+        IT_POWERUP,
+        0,
+        NULL,
+        0,
+        ""
+    },
+	
 /*QUAKED item_power_shield (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
 	{
@@ -2194,4 +2216,16 @@ void SetItemNames (void)
 	body_armor_index   = ITEM_INDEX(FindItem("Body Armor"));
 	power_screen_index = ITEM_INDEX(FindItem("Power Screen"));
 	power_shield_index = ITEM_INDEX(FindItem("Power Shield"));
+}
+void Use_Scope (edict_t *ent, gitem_t *item)
+{
+    if (ent->client->ps.fov != 90)
+    {
+        ent->client->ps.fov = 90;
+        ent->client->pers.zoom = false;
+        return;
+    }
+
+    ent->client->ps.fov = 30;
+    ent->client->pers.zoom = true;
 }
