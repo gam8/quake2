@@ -124,11 +124,11 @@ void ai_stand (edict_t *self, float dist)
 		if (self->monsterinfo.idle_time)
 		{
 			self->monsterinfo.idle (self);
-			self->monsterinfo.idle_time = level.time + 15 + random() * 15;
+			self->monsterinfo.idle_time = level.time + 10 + random() * 10;
 		}
 		else
 		{
-			self->monsterinfo.idle_time = level.time + random() * 15;
+			self->monsterinfo.idle_time = level.time + random() * 5;
 		}
 	}
 }
@@ -154,11 +154,11 @@ void ai_walk (edict_t *self, float dist)
 		if (self->monsterinfo.idle_time)
 		{
 			self->monsterinfo.search (self);
-			self->monsterinfo.idle_time = level.time + 10 + random() * 10;
+			self->monsterinfo.idle_time = level.time + 15 + random() * 15;
 		}
 		else
 		{
-			self->monsterinfo.idle_time = level.time + random() * 5;
+			self->monsterinfo.idle_time = level.time + random() * 15;
 		}
 	}
 }
