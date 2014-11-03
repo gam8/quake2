@@ -844,6 +844,7 @@ typedef struct
 	int			helpchanged;
 
 	qboolean	spectator;			// client is a spectator
+
 } client_persistant_t;
 
 // client data that stays across deathmatch respawns
@@ -864,7 +865,6 @@ struct gclient_s
 	// known to server
 	player_state_t	ps;				// communicated by server to clients
 	int				ping;
-	int				chase_mode;  
 
 	// private to game
 	client_persistant_t	pers;
@@ -942,47 +942,7 @@ struct gclient_s
 
 	edict_t		*chase_target;		// player we are chasing
 	qboolean	update_chase;		// need to update chase info?
-// client data that stays across multiple level loads
-typedef struct
-{
-    char userinfo[MAX_INFO_STRING];
-    char netname[16];
-    int hand;
-
-    qboolean connected; // a loadgame will leave valid entities that
-    // just don't have a connection yet
-
-    // values saved and restored from edicts when changing levels
-    int health;
-    int max_health;
-    int savedFlags;
-
-    int selected_item;
-    int inventory[MAX_ITEMS];
-
-    // ammo capacities
-    int max_bullets;
-    int max_shells;
-    int max_rockets;
-    int max_grenades;
-    int max_cells;
-    int max_slugs;
-
-    gitem_t *weapon;
-    gitem_t *lastweapon;
-
-    int power_cubes; // used for tracking the cubes in coop games
-    int score; // for calculating total unit score in coop games
-
-    int game_helpchanged;
-    int helpchanged;
-
-    qboolean spectator; // client is a spectator
-
-    qboolean zoom; // are we zoomed in?
-} client_persistant_t;
-
-
+};
 
 
 struct edict_s
@@ -1133,6 +1093,4 @@ struct edict_s
 	moveinfo_t		moveinfo;
 	monsterinfo_t	monsterinfo;
 };
-
-void Use_Scope (edict_t *ent, gitem_t *item);
 

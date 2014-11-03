@@ -689,37 +689,36 @@ GRENADE LAUNCHER
 
 void weapon_grenadelauncher_fire (edict_t *ent)
 {
-	vec3_t	offset;
-	vec3_t	forward, right;
-	vec3_t	start;
-	int		damage = 120;
-	float	radius;
+vec3_t offset; 
+vec3_t forward, right; 
+vec3_t start; 
+int damage = 120; 
+float radius; 
+radius = damage+=200; 
+if (is_quad) 
+    damage *= 4; 
+VectorSet(offset, 8, 8, ent->viewheight-8); 
+AngleVectors (ent->client->v_angle, forward, right, NULL); 
+P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start); 
+VectorScale (forward, -2, ent->client->kick_origin); 
+ent->client->kick_angles[0] = -1; 
+fire_grenade (ent, start, forward, damage, 600, 5, radius); 
+VectorSet(offset, 8, 20, ent->viewheight-8); 
+AngleVectors (ent->client->v_angle, forward, right, NULL); 
+P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start); 
+VectorScale (forward, -2, ent->client->kick_origin); 
+ent->client->kick_angles[0] = -1; 
+fire_grenade (ent, start, forward, damage, 600, 5, radius); 
+gi.WriteByte (svc_muzzleflash); 
+gi.WriteShort (ent-g_edicts); 
+gi.WriteByte (MZ_GRENADE | is_silenced); 
+gi.multicast (ent->s.origin, MULTICAST_PVS); 
+ent->client->ps.gunframe++; 
+PlayerNoise(ent, start, PNOISE_WEAPON); 
+ent->client->pers.inventory[ent->client->ammo_index] -= ent->client->pers.weapon->quantity;
+ent->client->pers.inventory[ent->client->ammo_index] -= ent->client->pers.weapon->quantity; 
+} 
 
-	radius = damage+40;
-	if (is_quad)
-		damage *= 4;
-
-	VectorSet(offset, 8, 8, ent->viewheight-8);
-	AngleVectors (ent->client->v_angle, forward, right, NULL);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-
-	VectorScale (forward, -2, ent->client->kick_origin);
-	ent->client->kick_angles[0] = -1;
-
-	fire_grenade (ent, start, forward, damage, 600, 2.5, radius);
-
-	gi.WriteByte (svc_muzzleflash);
-	gi.WriteShort (ent-g_edicts);
-	gi.WriteByte (MZ_GRENADE | is_silenced);
-	gi.multicast (ent->s.origin, MULTICAST_PVS);
-
-	ent->client->ps.gunframe++;
-
-	PlayerNoise(ent, start, PNOISE_WEAPON);
-
-	if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
-		ent->client->pers.inventory[ent->client->ammo_index]--;
-}
 
 void Weapon_GrenadeLauncher (edict_t *ent)
 {
@@ -762,6 +761,17 @@ void Weapon_RocketLauncher_Fire (edict_t *ent)
 	VectorSet(offset, 8, 8, ent->viewheight-8);
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
 	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
+
+	ent->client->v_angle[0] += 25;
+        AngleVectors (ent->client->v_angle, forward, right, NULL);
+        
+        VectorScale (forward, -2, ent->client->kick_origin);
+        ent->client->kick_angles[0] = -1;
+
+        VectorSet(offset, 8, 8, ent->viewheight-8);
+        P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
+        fire_rocket (ent, start, forward, damage, 550, damage_radius, radius_damage);
+        ent->client->v_angle[0] -= 25;
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
@@ -828,21 +838,34 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 void Weapon_Blaster_Fire (edict_t *ent)
 {
 	int		damage;
+	// new
+	vec3_t tempvec;
 
 	if (deathmatch->value)
 		damage = 15;
 	else
 		damage = 10;
 	Blaster_Fire (ent, vec3_origin, damage, false, EF_BLASTER);
+
+	// add 2 new bolts 
+	VectorSet(tempvec, 0, 8, 0);
+	VectorAdd(tempvec, vec3_origin, tempvec);
+	Blaster_Fire (ent, tempvec, damage, false, EF_BLASTER);
+
+	VectorSet(tempvec, 0, -8, 0);
+	VectorAdd(tempvec, vec3_origin, tempvec);
+	Blaster_Fire (ent, tempvec, damage, false, EF_BLASTER);
+
 	ent->client->ps.gunframe++;
 }
+
 
 void Weapon_Blaster (edict_t *ent)
 {
 	static int	pause_frames[]	= {19, 32, 0};
 	static int	fire_frames[]	= {5, 0};
 
-	Weapon_Generic (ent, 4, 8, 52, 55, pause_frames, fire_frames, Weapon_Blaster_Fire);
+	Weapon_Generic (ent, 4, 5, 52, 55, pause_frames, fire_frames, Weapon_Blaster_Fire);
 }
 
 
@@ -851,7 +874,6 @@ void Weapon_HyperBlaster_Fire (edict_t *ent)
 	float	rotation;
 	vec3_t	offset;
 	int		effect;
-	int		damage;
 
 	ent->client->weapon_sound = gi.soundindex("weapons/hyprbl1a.wav");
 
@@ -872,34 +894,35 @@ void Weapon_HyperBlaster_Fire (edict_t *ent)
 		}
 		else
 		{
-			rotation = (ent->client->ps.gunframe - 5) * 2*M_PI/6;
-			offset[0] = -4 * sin(rotation);
-			offset[1] = 0;
-			offset[2] = 4 * cos(rotation);
+				// TRIPLE HYPER BLASTER 
 
 			if ((ent->client->ps.gunframe == 6) || (ent->client->ps.gunframe == 9))
 				effect = EF_HYPERBLASTER;
 			else
 				effect = 0;
-			if (deathmatch->value)
-				damage = 15;
-			else
-				damage = 20;
-			Blaster_Fire (ent, offset, damage, true, effect);
-			if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
-				ent->client->pers.inventory[ent->client->ammo_index]--;
 
-			ent->client->anim_priority = ANIM_ATTACK;
-			if (ent->client->ps.pmove.pm_flags & PMF_DUCKED)
-			{
-				ent->s.frame = FRAME_crattak1 - 1;
-				ent->client->anim_end = FRAME_crattak9;
-			}
-			else
-			{
-				ent->s.frame = FRAME_attack1 - 1;
-				ent->client->anim_end = FRAME_attack8;
-			}
+			// change the offset radius to 6 (from 4), spread the bolts out a little
+			rotation = (ent->client->ps.gunframe - 5) * 2*M_PI/6;
+			offset[0] = 0;
+			offset[1] = -8 * sin(rotation);
+			offset[2] = 8 * cos(rotation);
+			Blaster_Fire (ent, offset, 20, true, effect);
+
+			// fire a second blast at a different rotation
+			rotation = (ent->client->ps.gunframe - 5) * 2*M_PI/6 + M_PI*2.0/3.0;
+			offset[0] = 0;
+			offset[1] = -8 * sin(rotation);
+			offset[2] = 8 * cos(rotation);
+			Blaster_Fire (ent, offset, 20, true, effect);
+
+			// fire a third blast at a different rotation
+			rotation = (ent->client->ps.gunframe - 5) * 2*M_PI/6 + M_PI*4.0/3.0;
+			offset[0] = 0;
+			offset[1] = -8 * sin(rotation);
+			offset[2] = 8 * cos(rotation);
+			Blaster_Fire (ent, offset, 20, true, effect);
+			// deduct 3 times the amount of ammo as before (... the *3 on end)
+			ent->client->pers.inventory[ent->client->ammo_index] -= ent->client->pers.weapon->quantity * 3;
 		}
 
 		ent->client->ps.gunframe++;
@@ -914,6 +937,7 @@ void Weapon_HyperBlaster_Fire (edict_t *ent)
 	}
 
 }
+
 
 void Weapon_HyperBlaster (edict_t *ent)
 {

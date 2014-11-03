@@ -880,6 +880,44 @@ void Cmd_PlayerList_f(edict_t *ent)
 	gi.cprintf(ent, PRINT_HIGH, "%s", text);
 }
 
+/*
+=================
+Cmd_CheckStats_f
+CCH: New function to print all players' stats
+=================
+*/
+void Cmd_CheckStats_f (edict_t *ent)
+{
+	int		i, j;
+	edict_t	*player;
+	char	stats[500];
+	vec3_t	v;
+	float	len;
+
+	// use in coop mode only
+//	if (!coop->value)
+//		return;
+
+	j = sprintf(stats, "            Name Health Range\n=============================\n");
+	for (i=0 ; ivalue ; i++)
+	{
+		player = g_edicts + 1 + i;
+		if (!player->inuse || !player->client)
+			continue; 
+		VectorSubtract (ent->s.origin, player->s.origin, v);
+		len = VectorLength (v);
+		j += sprintf(stats + j, "%16s %6d %5.0f\n", player->client->pers.netname, player->health, len);
+		if (j > 450)
+			break;
+	}
+	gi.centerprintf(ent, "%s", stats);
+}
+
+ /*
+ =================
+ ClientCommand
+ =================
+ */
 
 /*
 =================
@@ -966,6 +1004,12 @@ void ClientCommand (edict_t *ent)
 		Cmd_PutAway_f (ent);
 	else if (Q_stricmp (cmd, "wave") == 0)
 		Cmd_Wave_f (ent);
+		// CCH: new command 'checkstats'
+	else if (Q_stricmp (cmd, "checkstats") == 0)
+		Cmd_CheckStats_f (ent);
+ 	else if (Q_stricmp (cmd, "gameversion") == 0)
+ 	{
+ 		gi.cprintf (ent, PRINT_HIGH, "%s : %s\n", GAMEVERSION, __DATE__);
 	else if (Q_stricmp(cmd, "playerlist") == 0)
 		Cmd_PlayerList_f(ent);
 	else	// anything that doesn't match a command will be a chat
